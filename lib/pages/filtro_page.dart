@@ -16,7 +16,7 @@ class FiltroPage extends StatefulWidget{
 class _FiltroPageState extends State<FiltroPage> {
   final _camposParaOrdenacao = {
     Ponto.CAMPO_ID: 'Código',
-    Ponto.CAMPO_DESCRICAO: 'Descrição',
+    Ponto.CAMPO_NOME: 'Nome',
     Ponto.CAMPO_DATA_CADASTRO: 'Data de Cadastro'
   };
 
@@ -121,5 +121,4 @@ class _FiltroPageState extends State<FiltroPage> {
     Navigator.of(context).pop(_alterouValores);
     return true;
   }
-
 }
