@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:atividade1/model/ponto.dart';
 import 'package:atividade1/pages/filtro_page.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/conteudo_form_dialog.dart';
 
@@ -45,6 +46,7 @@ class _ListaPontosPageState extends State<ListaPontosPage>{
   }
 
   void _abrirForm({Ponto? pontoAtual, int? index}){
+    obterLocalizacaoAtual();
     final key = GlobalKey<ConteudoFormDialogState>();
     showDialog(
         context: context,
@@ -275,4 +277,69 @@ class _ListaPontosPageState extends State<ListaPontosPage>{
     });
   }
 
+  Position? localizacaoAtual;
+
+  void obterLocalizacaoAtual() async {
+    bool servicoHabilitado = await _servicoHabilitado();
+    if(!servicoHabilitado){
+      return;
+    }
+    bool permissoesPermitidas = await _permissoesPermitidas();
+    if(!permissoesPermitidas){
+      return;
+    }
+    localizacaoAtual = await Geolocator.getCurrentPosition();
+    setState(() {
+    });
+  }
+
+  Future<bool> _servicoHabilitado() async {
+    bool servicoHabilotado = await Geolocator.isLocationServiceEnabled();
+    if(!servicoHabilotado){
+      await _mostrarMensagemDialog('Para utilizar esse recurso, você deverá habilitar o serviço de localização '
+          'no dispositivo');
+      Geolocator.openLocationSettings();
+      return false;
+    }
+    return true;
+  }
+
+  Future<bool> _permissoesPermitidas() async {
+    LocationPermission permissao = await Geolocator.checkPermission();
+    if(permissao == LocationPermission.denied){
+      permissao = await Geolocator.requestPermission();
+      if(permissao == LocationPermission.denied){
+        _mostrarMensagem('Não será possível utilizar o recusro por falta de permissão');
+        return false;
+      }
+    }
+    if(permissao == LocationPermission.deniedForever){
+      await _mostrarMensagemDialog(
+          'Para utilizar esse recurso, você deverá acessar as configurações '
+              'do appe permitir a utilização do serviço de localização');
+      Geolocator.openAppSettings();
+      return false;
+    }
+    return true;
+  }
+
+  void _mostrarMensagem(String mensagem){
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(mensagem)));
+  }
+
+  Future<void> _mostrarMensagemDialog(String mensagem) async{
+    await showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text('Atenção'),
+        content: Text(mensagem),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
 }

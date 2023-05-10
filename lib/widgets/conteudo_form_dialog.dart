@@ -1,6 +1,9 @@
+import 'package:atividade1/pages/lista_pontos_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
+import 'package:atividade1/pages/maps_home.dart';
 
 import '../model/ponto.dart';
 
@@ -15,6 +18,7 @@ class ConteudoFormDialog extends StatefulWidget{
 }
 class ConteudoFormDialogState extends State<ConteudoFormDialog> {
 
+  MapsPageState mapsPageState = MapsPageState();
   final formKey = GlobalKey<FormState>();
   final nomeController = TextEditingController();
   final descricaoController = TextEditingController();
@@ -80,7 +84,6 @@ class ConteudoFormDialogState extends State<ConteudoFormDialog> {
     );
   }
 
-  bool dadosValidados() => formKey.currentState?.validate() == true;
 
   Ponto get novoPonto => Ponto(
     id: widget.pontoAtual?.id ?? 0,
@@ -88,5 +91,9 @@ class ConteudoFormDialogState extends State<ConteudoFormDialog> {
     descricao: descricaoController.text,
     diferenciais: diferenciaisController.text,
     dataCadastro: DateTime.now(),
+    latitude:
   );
+
+  bool dadosValidados() => formKey.currentState?.validate() == true;
+
 }
