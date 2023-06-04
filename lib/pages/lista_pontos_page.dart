@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:atividade1/dao/ponto_dao.dart';
 import 'package:atividade1/pages/detalhes_ponto.dart';
 import 'package:flutter/cupertino.dart';
@@ -5,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:atividade1/model/ponto.dart';
 import 'package:atividade1/pages/filtro_page.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:maps_launcher/maps_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/conteudo_form_dialog.dart';
 
@@ -19,7 +22,10 @@ class _ListaPontosPageState extends State<ListaPontosPage>{
   static const ACAO_EDITAR = 'editar';
   static const ACAO_EXCLUIR = 'excluir';
   static const ACAO_VISUALIZAR = 'visualizar';
+  static const ACAO_ABRIR_MAPA = 'mapa';
+  static const ACAO_DISTANCIA = 'distancia';
 
+  bool pegouLocal = true;
   final _pontos = <Ponto>[];
   final _dao = PontoDao();
   var _carregando = false;
@@ -45,6 +51,8 @@ class _ListaPontosPageState extends State<ListaPontosPage>{
     );
   }
 
+
+
   void _abrirForm({Ponto? pontoAtual, int? index}){
     obterLocalizacaoAtual();
     final key = GlobalKey<ConteudoFormDialogState>();
@@ -69,6 +77,7 @@ class _ListaPontosPageState extends State<ListaPontosPage>{
                   final novoPonto = key.currentState!.novoPonto;
                   _dao.salvar(novoPonto).then((success) {
                     if (success) {
+                      _atualizarLocal();
                       _atualizarLista();
                     }
                   });
@@ -131,15 +140,20 @@ class _ListaPontosPageState extends State<ListaPontosPage>{
               title: Text(
                 '${ponto.nome}',
               ),
-              subtitle: Text('${ponto.descricao}',
+              subtitle: Text('${ponto.detalhes}',
               ),
             ),
             itemBuilder: (BuildContext context) => _criarItensMenu(),
             onSelected: (String valorSelecinado){
               if(valorSelecinado == ACAO_EDITAR){
                 _abrirForm(pontoAtual: ponto);
-              }else if(valorSelecinado == ACAO_VISUALIZAR){
+              }else if(valorSelecinado == ACAO_VISUALIZAR) {
                 _abrirPaginaDetalhesTarefa(ponto);
+              }else if(valorSelecinado == ACAO_ABRIR_MAPA) {
+                _abrirCoordenadasNoMapaExterno(ponto);
+              }else if(valorSelecinado == ACAO_DISTANCIA){
+                var dist = _distanciaEntre(ponto).toStringAsFixed(1);
+                _mostrarMensagemDialogGeneric("Você está a ${dist} metros de distância do local.", "Distância");
               }else{
                 _excluir(ponto);
               }
@@ -149,6 +163,15 @@ class _ListaPontosPageState extends State<ListaPontosPage>{
       separatorBuilder: (BuildContext context, int index) => Divider(),
     );
   }
+
+  void _atualizarLocal() async{
+    if (pegouLocal == false){
+      pegouLocal = true;
+    }else{
+      pegouLocal = false;
+    }
+  }
+
   void _excluir(Ponto ponto){
     showDialog(
         context: context,
@@ -192,6 +215,30 @@ class _ListaPontosPageState extends State<ListaPontosPage>{
   }
   List<PopupMenuEntry<String>> _criarItensMenu(){
     return[
+      PopupMenuItem(
+        value: ACAO_ABRIR_MAPA,
+        child: Row(
+          children: [
+            Icon(Icons.map, color: Colors.black),
+            Padding(
+              padding: EdgeInsets.only(left: 10),
+              child: Text('Abrir no mapa externo'),
+            )
+          ],
+        ),
+      ),
+      PopupMenuItem(
+        value: ACAO_DISTANCIA,
+        child: Row(
+          children: [
+            Icon(Icons.directions_run, color: Colors.black),
+            Padding(
+              padding: EdgeInsets.only(left: 10),
+              child: Text('Pegar distância'),
+            )
+          ],
+        ),
+      ),
       PopupMenuItem(
         value: ACAO_VISUALIZAR,
         child: Row(
@@ -274,6 +321,7 @@ class _ListaPontosPageState extends State<ListaPontosPage>{
       if (pontos.isNotEmpty) {
         _pontos.addAll(pontos);
       }
+      obterLocalizacaoAtual();
     });
   }
 
@@ -291,6 +339,19 @@ class _ListaPontosPageState extends State<ListaPontosPage>{
     localizacaoAtual = await Geolocator.getCurrentPosition();
     setState(() {
     });
+  }
+  void _abrirCoordenadasNoMapaExterno(ponto) {
+    var lat = double.parse(ponto.latitude);
+    var lon = double.parse(ponto.longitude);
+    MapsLauncher.launchCoordinates(lat,lon);
+
+  }
+
+  double _distanciaEntre(ponto){
+    var lat = double.parse(ponto.latitude);
+    var lon = double.parse(ponto.longitude);
+    final distancia = Geolocator.distanceBetween(localizacaoAtual!.latitude, localizacaoAtual!.longitude, lat, lon);
+    return distancia;
   }
 
   Future<bool> _servicoHabilitado() async {
@@ -332,6 +393,22 @@ class _ListaPontosPageState extends State<ListaPontosPage>{
       context: context,
       builder: (_) => AlertDialog(
         title: Text('Atenção'),
+        content: Text(mensagem),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _mostrarMensagemDialogGeneric(String mensagem, String titulo) async{
+    await showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(titulo),
         content: Text(mensagem),
         actions: [
           TextButton(

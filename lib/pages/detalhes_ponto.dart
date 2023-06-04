@@ -37,7 +37,7 @@ class _DetalhesPontoPageState extends State<DetalhesPontoPage> {
           Row(
             children: [
               Campo(descricao: 'Descrição: '),
-              Valor(valor: '${widget.ponto.descricao}')
+              Valor(valor: '${widget.ponto.detalhes}')
             ],
           ),
           Row(
@@ -50,6 +50,18 @@ class _DetalhesPontoPageState extends State<DetalhesPontoPage> {
             children: [
               Campo(descricao: 'Data de inserção: '),
               Valor(valor: '${widget.ponto.dataCadastro}')
+            ],
+          ),
+          Row(
+            children: [
+              Campo(descricao: 'Latitude: '),
+              Valor(valor: '${widget.ponto.latitude}')
+            ],
+          ),
+          Row(
+            children: [
+              Campo(descricao: 'Longitude: '),
+              Valor(valor: '${widget.ponto.longitude}')
             ],
           )
         ],

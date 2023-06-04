@@ -50,9 +50,11 @@ class PontoDao{
         columns: [
           Ponto.CAMPO_ID,
           Ponto.CAMPO_NOME,
-          Ponto.CAMPO_DESCRICAO,
+          Ponto.CAMPO_DETALHES,
           Ponto.CAMPO_DIFERENCIAIS,
-          Ponto.CAMPO_DATA_CADASTRO
+          Ponto.CAMPO_DATA_CADASTRO,
+          Ponto.CAMPO_LATITUDE,
+          Ponto.CAMPO_LONGITUDE
         ],
         where: where,
         orderBy: orderBy);

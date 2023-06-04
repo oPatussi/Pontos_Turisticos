@@ -21,7 +21,7 @@ class DatabaseProvider{
       dbPath,
       version: _dbVersion,
       onCreate: _onCreate,
-      // onUpgrade: _onUpgrade,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -31,23 +31,32 @@ class DatabaseProvider{
     CREATE TABLE ${Ponto.NAME_TABLE}(
       ${Ponto.CAMPO_ID} INTEGER PRIMARY KEY AUTOINCREMENT,
       ${Ponto.CAMPO_NOME} TEXT NOT NULL,
-      ${Ponto.CAMPO_DESCRICAO} TEXT NOT NULL,
+      ${Ponto.CAMPO_DETALHES} TEXT NOT NULL,
       ${Ponto.CAMPO_DATA_CADASTRO} TEXT,
-      ${Ponto.CAMPO_DIFERENCIAIS} TEXT NOT NULL
+      ${Ponto.CAMPO_DIFERENCIAIS} TEXT NOT NULL,
+      ${Ponto.CAMPO_LATITUDE} TEXT NOT NULL,
+      ${Ponto.CAMPO_LONGITUDE} TEXT NOT NULL
     );
     '''
     );
   }
 
-  // Future<void> _onUpgrade(Database db,int oldVersion, int newVersion) async {
-  //   switch(oldVersion){
-  //     case 1:
-  //       await db.execute('''
-  //         ALTER TABLE ${Ponto.NAME_TABLE}
-  //         ADD ${Tarefa.CAMPO_FINALIZADA} INTEGER NOT NULL DEFAULT 0;
-  //       ''');
-  //   }
-  // }
+  Future<void> _onUpgrade(Database db,int oldVersion, int newVersion) async {
+    switch(oldVersion){
+      case 1:
+        await db.execute('''
+          ALTER TABLE ${Ponto.NAME_TABLE}(
+      ${Ponto.CAMPO_ID} INTEGER PRIMARY KEY AUTOINCREMENT,
+      ${Ponto.CAMPO_NOME} TEXT NOT NULL,
+      ${Ponto.CAMPO_DETALHES} TEXT NOT NULL,
+      ${Ponto.CAMPO_DATA_CADASTRO} TEXT,
+      ${Ponto.CAMPO_DIFERENCIAIS} TEXT NOT NULL,
+      ${Ponto.CAMPO_LATITUDE} TEXT NOT NULL,
+      ${Ponto.CAMPO_LONGITUDE} TEXT NOT NULL);
+          
+        ''');
+    }
+  }
 
   Future<void> close() async{
     if (_database != null){
